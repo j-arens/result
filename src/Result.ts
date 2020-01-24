@@ -17,6 +17,9 @@ export class ResultError extends Error {
 
 /**
  * Base Result (should not instantiated directly use Ok or Some instead).
+ * Result<T, E> is the type used for returning and propagating errors.
+ * It is made of the variants, Ok(T), representing success and containing a value,
+ * and Err(E), representing error and containing an error value.
  */
 export class Result<T, E> {
   private _success: T;
@@ -31,14 +34,23 @@ export class Result<T, E> {
     this._error = error;
   }
 
+  /**
+   * Returns true if the result is Ok.
+   */
   public isOk(): boolean {
     return this instanceof Ok;
   }
 
+  /**
+   * Returns true if the result is Err.
+   */
   public isErr(): boolean {
     return this instanceof Err;
   }
 
+  /**
+   * Converts from Result<T, E> to Option<T>.
+   */
   public ok(): Option<T> {
     if (this.isOk()) {
       return some<T>(this._success);
@@ -46,6 +58,9 @@ export class Result<T, E> {
     return none();
   }
 
+  /**
+   * Converts from Result<T, E> to Option<E>.
+   */
   public err(): Option<E> {
     if (this.isOk()) {
       return none();
@@ -53,6 +68,9 @@ export class Result<T, E> {
     return some<E>(this._error);
   }
 
+  /**
+   * Returns res if the result is Ok, otherwise returns the Err value of self.
+   */
   public and<U>(res: Result<U, E>): Result<U, E> {
     if (this.isOk()) {
       return res;
@@ -60,6 +78,9 @@ export class Result<T, E> {
     return new Err<E>(this._error);
   }
 
+  /**
+   * Calls op if the result is Ok, otherwise returns the Err value of self.
+   */
   public andThen<U>(op: (success: T) => Result<U, E>): Result<U, E> {
     if (this.isOk()) {
       return op(this._success);
@@ -67,6 +88,9 @@ export class Result<T, E> {
     return new Err<E>(this._error);
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Ok.
+   */
   public expect(msg: string): T {
     if (this.isOk()) {
       return this._success;
@@ -74,6 +98,9 @@ export class Result<T, E> {
     throw new ResultError(msg);
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Err.
+   */
   public expectErr(msg: string): E {
     if (this.isErr()) {
       return this._error;
@@ -81,6 +108,10 @@ export class Result<T, E> {
     throw new ResultError(msg);
   }
 
+  /**
+   * Maps a Result<T, E> to Result<U, E> by applying a function to a contained Ok value,
+   * leaving an Err value untouched.
+   */
   public map<U>(op: (success: T) => U): Result<U, E> {
     if (this.isOk()) {
       return new Ok<U>(op(this._success));
@@ -88,6 +119,10 @@ export class Result<T, E> {
     return new Err<E>(this._error);
   }
 
+  /**
+   * Maps a Result<T, E> to Result<T, F> by applying a function to a contained Err value,
+   * leaving an Ok value untouched.
+   */
   public mapErr<F>(op: (error: E) => F): Result<T, F> {
     if (this.isOk()) {
       return new Ok<T>(this._success);
@@ -95,6 +130,9 @@ export class Result<T, E> {
     return new Err<F>(op(this._error));
   }
 
+  /**
+   * Returns res if the result is Err, otherwise returns the Ok value of self.
+   */
   public or<F>(res: Result<T, F>): Result<T, F> {
     if (this.isOk()) {
       return new Ok<T>(this._success);
@@ -102,6 +140,9 @@ export class Result<T, E> {
     return res;
   }
 
+  /**
+   * Calls op if the result is Err, otherwise returns the Ok value of self.
+   */
   public orElse<F>(op: (error: E) => Result<T, F>): Result<T, F> {
     if (this.isOk()) {
       return new Ok<T>(this._success);
@@ -109,6 +150,9 @@ export class Result<T, E> {
     return op(this._error);
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Ok.
+   */
   public unwrap(): T {
     if (this.isOk()) {
       return this._success;
@@ -116,6 +160,9 @@ export class Result<T, E> {
     throw ResultError.illegalCall('unwrap', 'Err');
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Err.
+   */
   public unwrapErr(): E {
     if (this.isErr()) {
       return this._error;
@@ -123,6 +170,9 @@ export class Result<T, E> {
     throw ResultError.illegalCall('unwrapErr', 'Ok');
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Ok. Else, it returns optb.
+   */
   public unwrapOr(optb: T): T {
     if (this.isOk()) {
       return this._success;
@@ -130,6 +180,10 @@ export class Result<T, E> {
     return optb;
   }
 
+  /**
+   * Unwraps a result, yielding the content of an Ok.
+   * If the value is an Err then it calls op with its value.
+   */
   public unwrapOrElse(op: (error: E) => T): T {
     if (this.isOk()) {
       return this._success;
