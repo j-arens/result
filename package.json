@@ -1,6 +1,6 @@
 {
   "name": "@j-arens/result",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "author": "Josh Arens",
   "license": "MIT",
   "description": "A basic port of the Result type from Rust",
